@@ -1,0 +1,28 @@
+name: Aria2-Fast Build android 
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: build arai2c.exe
+      env:
+        VERSION: 1.37.0
+      run: |
+        curl -L -o Dockerfile.android "https://raw.githubusercontent.com/aria2/aria2/master/Dockerfile.android"
+        bash patch_dockerfile_android.sh
+        sudo docker build --build-arg ARIA2_VERSION=release-$VERSION -t aria2-android - < Dockerfile.android
+        id=$(sudo docker create aria2-android)
+        sudo docker cp $id:/root/build/aria2/src/aria2c ./aria2c-fast_android
+    - name: Upload to release
+      uses: JasonEtco/upload-to-release@master
+      with:
+        args: aria2c-fast_android application/vnd.microsoft.portable-executable
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -3,6 +3,7 @@ name: Aria2-Fast Build x64
 on:
   release:
     types: [published]
+  workflow_dispatch:
 
 
 jobs:
@@ -15,6 +16,8 @@ jobs:
         VERSION: 1.37.0
       run: |
         curl -L -o Dockerfile.mingw "https://raw.githubusercontent.com/aria2/aria2/release-$VERSION/Dockerfile.mingw"
+        sed -i 's/gmplib.org\/download/ftp.gnu.org\/gnu/' Dockerfile.mingw
+        sed -i 's/zlib-1.3/zlib-1.3.1/' Dockerfile.mingw
         bash patch_dockerfile.sh
         sudo docker build --build-arg HOST=x86_64-w64-mingw32 --build-arg ARIA2_VERSION=release-$VERSION --build-arg ARIA2_REF=refs/tags/release-$VERSION -t aria2-mingw - < Dockerfile.mingw
         id=$(sudo docker create aria2-mingw)
